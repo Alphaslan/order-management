@@ -1,15 +1,18 @@
 package com.jrp.oma.controllers;
 
 import com.jrp.oma.entities.Order;
+import com.jrp.oma.entities.Product;
 import com.jrp.oma.services.AddressService;
 import com.jrp.oma.services.CustomerService;
 import com.jrp.oma.services.OrderService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -20,7 +23,7 @@ public class OrderController {
     private final OrderService orderS;
     private final CustomerService customerS;
     private final AddressService addressS;
-    private boolean active;
+
 
     public OrderController(OrderService orderS, CustomerService customerS, AddressService addressS) {
         this.orderS = orderS;
@@ -28,17 +31,12 @@ public class OrderController {
         this.addressS = addressS;
     }
 
-    // find by *all *id *activeStatus creationDate *before *after *between *customerId *addressId
-    //*activate *dis-activate
-    //add *one *all
-    //update *patch
-    //delete *one
     //unique
     //sort
     //pageable
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/")
+    @GetMapping("/find-all")
     public List<Order> findAll() {
         return orderS.findAll();
     }
@@ -50,10 +48,10 @@ public class OrderController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/activeStatus/{isActive}")
-    public List<Order> findByActiveStatus(@PathVariable String isActive) {
-        boolean b = isActive.equalsIgnoreCase("active");
-        return orderS.findByActiveStatus(b);
+    @GetMapping("/status/{status}")
+    public List<Order> findByStatus(@PathVariable String status) {
+        status = status.toUpperCase();
+        return orderS.findByStatus(status);
     }
 
     @ResponseStatus(HttpStatus.OK)
@@ -69,51 +67,85 @@ public class OrderController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/before")
-    public List<Order> createdBefore(@RequestParam LocalDateTime time) {
-        return orderS.findByCreationDateBefore(time);
+    @GetMapping("/created-before")
+    public List<Order> createdBefore(@RequestParam LocalDateTime date) {
+        return orderS.findByCreationDateBefore(date);
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/after")
-    public List<Order> createdAfter(@RequestParam LocalDateTime time) {
-        return orderS.findByCreationDateAfter(time);
+    @GetMapping("/created-after")
+    public List<Order> createdAfter(@RequestParam LocalDateTime date) {
+        return orderS.findByCreationDateAfter(date);
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/between")
-    public List<Order> createdBetween(@RequestParam LocalDateTime startTime,@RequestParam LocalDateTime endTime) {
-        return orderS.findByCreationDateIsBetween(startTime,endTime);
+    @GetMapping("/created-between")
+    public List<Order> createdBetween(@RequestParam LocalDateTime startDate, @RequestParam LocalDateTime endDate) {
+        return orderS.findByCreationDateIsBetween(startDate, endDate);
     }
 
-    @PatchMapping("/{id}/{active}")
-    public ResponseEntity<Order> activeStatus(@PathVariable long id,@PathVariable boolean active) {
+    @PatchMapping("/{id}/update-status/{status}")
+    public ResponseEntity<Order> activeStatus(@PathVariable long id, @PathVariable String status) {
         if (!orderS.findBy(id).isPresent())
             return ResponseEntity.badRequest().build();
-        Order updated= orderS.findBy(id).get();
-        updated.setActiveStatus(active);
+        Order updated = orderS.findBy(id).get();
+        updated.setStatus(Order.Status.valueOf(status.toUpperCase()));
         return ResponseEntity.ok(updated);
     }
 
+    /**
+     * Addition can be multiple of same item. But deleting is for only
+     * @param id
+     * @param operation
+     * @param productList
+     * @return
+     */
+    @PatchMapping(value = "/{id}/add-remove-products/{operation}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public @ResponseBody ResponseEntity<Order> updateProductList(@PathVariable Long id,
+                                                                 @PathVariable String operation,
+                                                                 @RequestBody List<Product> productList) {
+        if (!orderS.findBy(id).isPresent())
+            return ResponseEntity.badRequest().build();
 
-    //Not sure obout products
+        Order order = orderS.findBy(id).get();
+
+        if (operation.equalsIgnoreCase("add")) {
+            order.getProductList().addAll(productList);
+        } else if (operation.equalsIgnoreCase("remove")) {
+            productList.removeIf(p1 -> order.getProductList().stream().noneMatch(p2 ->
+                    p2.getId() == p1.getId()));
+            order.getProductList().removeIf(p1 -> productList.removeIf(p2 ->
+                    p2.getId() == p1.getId()));
+        } else return ResponseEntity.badRequest().build();
+
+        order.setProductList(orderS.checkProductListUpdatePriceAndTax(order));
+
+        return ResponseEntity.ok(orderS.saveAndFlush(order));
+    }
+
     @PostMapping("/save")
     public ResponseEntity<Order> saveAndFlush(@RequestBody Order order) {
         order.setCreationDate(LocalDateTime.now());
-        if (order.getCustomer().getId() == null || customerS.findBy(order.getCustomer().getId()).isPresent())
+        order.setStatus(Order.Status.ORDER_PENDING);
+
+        if (order.getCustomer().getId() == null || !customerS.findBy(order.getCustomer().getId()).isPresent())
             return ResponseEntity.badRequest().build();
         order.setCustomer(customerS.findBy(order.getCustomer().getId()).get());
-        if (order.getAddress().getId() ==null || addressS.findBy(order.getAddress().getId()).isPresent())
+
+        if (order.getAddress().getId() == null || !addressS.findBy(order.getAddress().getId()).isPresent())
             return ResponseEntity.badRequest().build();
         order.setAddress(addressS.findBy(order.getAddress().getId()).get());
+
+        order.setProductList(orderS.checkProductListUpdatePriceAndTax(order));
+
         return ResponseEntity.ok(orderS.saveAndFlush(order));
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @PostMapping("/saveAll")
+    @PostMapping("/save-all")
     public List<Order> saveAll(@RequestBody List<Order> list) {
         List<Order> addedList = new ArrayList<>();
-        for (Order order:list){
+        for (Order order : list) {
             if (saveAndFlush(order).getBody() != null)
                 addedList.add(order);
         }
@@ -127,14 +159,16 @@ public class OrderController {
 
         Order oldOrder = orderS.findBy(id).get();
 
-        oldOrder.setActiveStatus(patchOrder.isActiveStatus());
+        oldOrder.setStatus(patchOrder.getStatus());
 
         if (patchOrder.getCreationDate() != null)
             oldOrder.setCreationDate(patchOrder.getCreationDate());
-        if (patchOrder.getAddress() != null)
-            oldOrder.setAddress(patchOrder.getAddress());
-        if (patchOrder.getProductList() != null)
-            oldOrder.setProductList(patchOrder.getProductList());
+        if (patchOrder.getAddress() != null && addressS.findBy(patchOrder.getAddress().getId()).isPresent())
+            oldOrder.setAddress(addressS.findBy(patchOrder.getAddress().getId()).get());
+
+        if (patchOrder.getProductList() != null) {
+            oldOrder.setProductList(orderS.checkProductListUpdatePriceAndTax(patchOrder));
+        }
 
         return ResponseEntity.ok(orderS.saveAndFlush(oldOrder));
     }

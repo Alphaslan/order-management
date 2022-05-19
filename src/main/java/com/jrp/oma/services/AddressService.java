@@ -17,11 +17,23 @@ public class AddressService {
     AddressRepository addressR;
 
     public List<Address> findAllByState(String state) {
-        return addressR.findAllByState(state);
+        state=state.toUpperCase();
+        try {
+            return addressR.findAllByState(Address.States.valueOf(state));
+        }catch (IllegalArgumentException e) {
+            e.getSuppressed();
+        }
+       return null;
     }
 
     public List<Address> findAllByStateAndCity(String state, String city) {
-        return addressR.findAllByStateAndCity(state, city);
+        state=state.toUpperCase();
+        try {
+            return addressR.findAllByStateAndCity(Address.States.valueOf(state), city);
+        }catch (IllegalArgumentException e) {
+            e.getSuppressed();
+        }
+        return null;
     }
 
     public List<Address> findAllByCity(String city) {
@@ -48,15 +60,15 @@ public class AddressService {
         return addressR.findAll(sort);
     }
 
-    public Iterable<Address> findAll(Pageable pageable){
+    public Iterable<Address> findAll(Pageable pageable) {
         return addressR.findAll(pageable);
     }
 
-    public List<Address> findAllByZipCode(Integer zipCode) {
+    public List<Address> findAllByZipCode(String zipCode) {
         return addressR.findAllByZipCode(zipCode);
     }
 
-    public List<Address> findAllByZipCodeStartingWith(Integer zipCode) {
+    public List<Address> findAllByZipCodeStartingWith(String zipCode) {
         return addressR.findAllByZipCodeStartingWith(zipCode);
     }
 

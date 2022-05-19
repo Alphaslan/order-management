@@ -9,15 +9,11 @@ import java.util.List;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order,Long> {
-    List<Order> findByActiveStatus(boolean isActive);
+    List<Order> findByStatus(Order.Status status);
 
     List<Order> findByCustomerId(long id);
 
     List<Order> findByAddressId(long id);
-
-    List<Order> findByCustomerFname(String fname);
-
-    List<Order> findByCustomerLname(String lname);
 
     List<Order> findByCreationDateBefore (LocalDateTime dateTime);
 

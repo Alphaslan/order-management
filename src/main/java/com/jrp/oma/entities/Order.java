@@ -1,8 +1,10 @@
 package com.jrp.oma.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -10,14 +12,24 @@ import java.util.List;
 @Table(name = "order_")
 public class Order {
 
+    public enum Status {
+        ORDER_PENDING, BEING_PREPARED, SHIPPED, UNSHIPPED,
+        DELIVERED, CANCELLED, RETURN_STARTED, RETURNED
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private boolean activeStatus = false;
+    private Status status;
 
     private LocalDateTime creationDate;
 
+    private BigDecimal price;
+
+    private BigDecimal tax;
+
+    @JsonIgnore
     @JsonBackReference(value = "product_order")
     @ManyToMany(cascade =
             {CascadeType.DETACH, CascadeType.MERGE,
@@ -27,6 +39,7 @@ public class Order {
     joinColumns = @JoinColumn(name = "order_id"),
     inverseJoinColumns = @JoinColumn(name = "product_id"))
     private List<Product> productList;
+
 
     @JsonBackReference(value = "customer_order")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -47,12 +60,12 @@ public class Order {
         this.id = id;
     }
 
-    public boolean isActiveStatus() {
-        return activeStatus;
+    public Status getStatus() {
+        return status;
     }
 
-    public void setActiveStatus(boolean activeStatus) {
-        this.activeStatus = activeStatus;
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
     public List<Product> getProductList() {
@@ -87,4 +100,19 @@ public class Order {
         this.creationDate = creationDate;
     }
 
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public BigDecimal getTax() {
+        return tax;
+    }
+
+    public void setTax(BigDecimal tax) {
+        this.tax = tax;
+    }
 }

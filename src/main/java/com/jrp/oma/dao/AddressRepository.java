@@ -8,9 +8,9 @@ import java.util.List;
 
 @Repository
 public interface AddressRepository extends JpaRepository<Address,Long> {
-    List<Address> findAllByState(String state);
+    List<Address> findAllByState(Address.States state);
 
-    List<Address> findAllByStateAndCity(String state, String city);
+    List<Address> findAllByStateAndCity(Address.States state, String city);
 
     List<Address> findAllByCity(String city);
 
@@ -20,9 +20,9 @@ public interface AddressRepository extends JpaRepository<Address,Long> {
 
     List<Address> findByCustomerId(long id);
 
-    List<Address> findAllByZipCode(Integer zipCode);
+    List<Address> findAllByZipCode(String zipCode);
 
-    List<Address> findAllByZipCodeStartingWith(Integer zipCode);
+    List<Address> findAllByZipCodeStartingWith(String zipCode);
 
 
 }

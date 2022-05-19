@@ -23,10 +23,6 @@ public class ProductController {
         this.categoryS = categoryS;
     }
 
-    //find  *all    *id  *name    *category id name   **price **orders
-    //add *one *all
-    //update *patch update
-    //delete *one all
     //unique
     //sort
     //pageable
@@ -38,20 +34,16 @@ public class ProductController {
         return productS.findAll();
     }
 
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.FOUND)
     @GetMapping("/{id}")
-    public Product findById(@PathVariable Long id) {
-        if (productS.findBy(id).isPresent())
-            return productS.findBy(id).get();
-        return null;
+    public Optional<Product> findById(@PathVariable Long id) {
+        return productS.findBy(id);
     }
 
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.FOUND)
     @GetMapping("/name/{name}")
-    public Product findByName(@PathVariable String name) {
-        if (productS.findBy(name).isPresent())
-            return productS.findBy(name).get();
-        return null;
+    public Optional<Product> findByName(@PathVariable String name) {
+        return productS.findBy(name);
     }
 
     @ResponseStatus(HttpStatus.OK)
@@ -60,12 +52,11 @@ public class ProductController {
         return productS.findAllByCategory(categoryId);
     }
 
-    @ResponseStatus(HttpStatus.OK)
     @GetMapping("/category/")
-    public List<Product> findByCategoryName(@RequestParam String categoryName) {
-        if (categoryS.findBy(categoryName).isPresent())
-            return categoryS.findBy(categoryName).get().getProductList();
-        return null;
+    public ResponseEntity<List<Product>> findByCategoryName(@RequestParam String categoryName) {
+        if (!categoryS.findBy(categoryName).isPresent())
+            return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(categoryS.findBy(categoryName).get().getProductList());
     }
 
     @ResponseStatus(HttpStatus.OK)
@@ -123,7 +114,7 @@ public class ProductController {
      * @return Will return unique added list
      */
     @ResponseStatus(HttpStatus.OK)
-    @PostMapping("/saveAll")
+    @PostMapping("/save-all")
     public List<Product> saveAll(@RequestBody List<Product> productList) {
 
         HashSet<String> set = new HashSet<>();
@@ -169,9 +160,6 @@ public class ProductController {
         }
         return ResponseEntity.badRequest().build();
     }
-
-
-    //pageable
 
 
 }

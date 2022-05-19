@@ -39,7 +39,6 @@ public class ProductService {
         return productR.findByPriceBetween(min, max);
     }
 
-
     public List<Product> findAllByCategory(Long categoryId) {
         return productR.findByCategoryId(categoryId);
     }

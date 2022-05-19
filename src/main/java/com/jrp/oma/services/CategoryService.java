@@ -14,7 +14,6 @@ public class CategoryService {
     @Autowired
     CategoryRepository categoryR;
 
-
     public Optional<Category> findBy(String name) {
         return categoryR.findByName(name);
     }
@@ -33,13 +32,10 @@ public class CategoryService {
 
 
     public void deleteById(Long id) {
-        if (findBy(id).isPresent()) {
-            categoryR.deleteById(id);
-        }
+        categoryR.deleteById(id);
     }
 
     public List<Category> saveAll(Iterable<Category> iterable) {
-
         return categoryR.saveAll(iterable);
     }
 

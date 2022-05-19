@@ -5,16 +5,14 @@ import com.jrp.oma.services.AddressService;
 import com.jrp.oma.services.CustomerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Controller
-@RequestMapping("/address")
+@RestController
+@RequestMapping("/customer-address")
 public class AddressController {
 
     private final AddressService addressS;
@@ -25,16 +23,12 @@ public class AddressController {
         this.customerS = customerS;
     }
 
-    // findBy *id *street *city *state zip *customer
-    //add one all
-    //update patch
-    //delete one
     //unique
     //sort
     //pageable
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping()
+    @GetMapping
     public List<Address> findAll() {
         return addressS.findAll();
     }
@@ -46,7 +40,7 @@ public class AddressController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/customerId/{id}")
+    @GetMapping("/customer/{id}")
     public List<Address> findByCustomerId(@PathVariable("id") long id) {
         return addressS.findByCustomerId(id);
     }
@@ -70,58 +64,65 @@ public class AddressController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/cityAndStreet/{city}/{street}")
+    @GetMapping("/city-street/{city}/{street}")
     public List<Address> findAllByCityAndStreet(@PathVariable String city, @PathVariable("street") String street) {
         return addressS.findAllByCityAndStreet(city, street);
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/stateAndCity/{state}/{city}")
+    @GetMapping("/state-city/{state}/{city}")
     public List<Address> findAllByStateAndCity(@PathVariable String state, @PathVariable("city") String city) {
         return addressS.findAllByStateAndCity(state, city);
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/zipCode/{zipCode}")
-    public List<Address> findAllByZipCode(@PathVariable Integer zipCode) {
+    @GetMapping("/zipcode/{zipCode}")
+    public List<Address> findAllByZipCode(@PathVariable String zipCode) {
         return addressS.findAllByZipCode(zipCode);
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/zipCodeStartsWith/{zipCode}")
-    public List<Address> findAllByZipCodeBeginsWith(@PathVariable Integer zipCode) {
+    @GetMapping("/zipcode-starts-with/{zipCode}")
+    public List<Address> findAllByZipCodeBeginsWith(@PathVariable String zipCode) {
         return addressS.findAllByZipCodeStartingWith(zipCode);
     }
 
 
     @PostMapping("/save")
     public ResponseEntity<Address> saveAndFlush(@RequestBody Address address) {
-        address.setState(address.getState().toUpperCase());
+        address.setState(address.getState());
         String temp = address.getCity().toLowerCase();
-        StringUtils.capitalize(temp);
-        address.setCity(temp);
+        address.setCity(StringUtils.capitalize(temp));
         temp = address.getStreet().toLowerCase();
-        StringUtils.capitalize(temp);
+        for (String partStreet : temp.split(" ")) {
+            temp = temp.replace(partStreet, StringUtils.capitalize(partStreet));
+        }
         address.setStreet(temp);
-        if (address.getZipCode().toString().length() != 5)
+        if (address.getZipCode().length() != 5) //for only USA
             return ResponseEntity.badRequest().build();
 
-        if (address.getCustomer().getId() == null || customerS.findBy(address.getCustomer().getId()).isPresent())
+        if (address.getCustomer().getId() == null || !customerS.findBy(address.getCustomer().getId()).isPresent())
             return ResponseEntity.badRequest().build();
+
+        List<Address> customerAddressList = customerS.findBy(address.getCustomer().getId()).get().getAddressList();
+
+        //validation???
+        for (Address address1 : customerAddressList) {
+            if (address.getStreet().equalsIgnoreCase(address1.getStreet()) &&
+                    address.getZipCode().equalsIgnoreCase(address1.getZipCode()))
+                return ResponseEntity.badRequest().build();
+        }
+
         address.setCustomer(customerS.findBy(address.getCustomer().getId()).get());
 
         return ResponseEntity.ok(addressS.saveAndFlush(address));
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @PostMapping("/saveAll")
+    @PostMapping("/save-all")
     public List<Address> saveAll(@RequestBody List<Address> list) {
-        List<Address> addedList = new ArrayList<>();
-        for (Address address : list) {
-            if (saveAndFlush(address).getBody() != null)
-                addedList.add(address);
-        }
-        return addedList;
+        list.removeIf(address -> saveAndFlush(address).getBody() == null);
+        return list;
     }
 
     @PatchMapping("/update/{id}")

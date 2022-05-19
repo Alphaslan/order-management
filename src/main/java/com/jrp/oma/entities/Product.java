@@ -26,7 +26,7 @@ public class Product {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @JsonBackReference (value = "product_order")
+    @JsonBackReference(value = "product_order")
     @ManyToMany(cascade =
             {CascadeType.DETACH, CascadeType.MERGE,
                     CascadeType.REFRESH, CascadeType.PERSIST},

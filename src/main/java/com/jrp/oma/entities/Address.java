@@ -9,19 +9,25 @@ import java.util.List;
 
 @Entity
 public class Address {
+
+    public enum States {
+        AL, AK, AZ, AR, CA, CO, CT, DE, DC, FL, GA, HI, ID, IL, IN, IA, KS, KY, LA, ME, MD, MA, MI, MN, MS, MO,
+        MT, NE, NV, NH, NJ, NM, NY, NC, ND, OH, OK, OR, PA, RI, SC, SD, TN, TX, UT, VT, VA, WA, WV, WI, WY,
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @NotNull
-    private String state;
+    private States state;
 
     private String city;
 
     private String street;
 
     @NotNull
-    private Integer zipCode;
+    private String zipCode;
 
     @JsonBackReference(value = "customer_address")
     @NotNull
@@ -45,11 +51,11 @@ public class Address {
         this.id = id;
     }
 
-    public String getState() {
+    public States getState() {
         return state;
     }
 
-    public void setState(String state) {
+    public void setState(States state) {
         this.state = state;
     }
 
@@ -69,11 +75,11 @@ public class Address {
         this.street = street;
     }
 
-    public Integer getZipCode() {
+    public String getZipCode() {
         return zipCode;
     }
 
-    public void setZipCode(Integer zipCode) {
+    public void setZipCode(String zipCode) {
         this.zipCode = zipCode;
     }
 
@@ -92,5 +98,6 @@ public class Address {
     public void setOrderList(List<Order> orderList) {
         this.orderList = orderList;
     }
+
 
 }

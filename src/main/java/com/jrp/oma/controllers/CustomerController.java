@@ -20,16 +20,9 @@ public class CustomerController {
         this.customerS = customerS;
     }
 
-    //find  *all    *id  *Fname *Lname *email
-    //add *one *all
-    //update *patch
-    //delete *one
     //unique
     //sort
     //pageable
-
-    // address Add remove
-    // Order Add Remove
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
@@ -72,7 +65,7 @@ public class CustomerController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @PostMapping("/saveAll")
+    @PostMapping("/save-all")
     public List<Customer> saveAll(@RequestBody List<Customer> list) {
         List<Customer> addedList = new ArrayList<>();
         for (Customer customer: list){

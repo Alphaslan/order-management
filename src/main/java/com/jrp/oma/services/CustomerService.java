@@ -14,14 +14,6 @@ public class CustomerService {
     @Autowired
     CustomerRepository customerR;
 
-    public Optional<Customer> findByFname(String name) {
-        return customerR.findByFname(name);
-    }
-
-    public Optional<Customer> findByLname(String name) {
-        return customerR.findByLname(name);
-    }
-
     public List<Customer> findAllByFname(String name) {
         return customerR.findAllByFname(name);
     }
@@ -44,10 +36,6 @@ public class CustomerService {
 
     public List<Customer> findByEmailContains (String email) {
         return customerR.findByEmailContains(email);
-    }
-
-    public List<Customer> saveAll(Iterable<Customer> iterable) {
-        return customerR.saveAll(iterable);
     }
 
     public Customer saveAndFlush(Customer customer) {

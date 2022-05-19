@@ -32,10 +32,8 @@ public class CategoryController {
 
     @ResponseStatus(HttpStatus.FOUND)
     @GetMapping("/{id}")
-    public Category findById(@PathVariable("id") Long id) {
-        if (categoryS.findBy(id).isPresent())
-            return categoryS.findBy(id).get();
-        return null;
+    public Optional<Category> findById(@PathVariable("id") Long id) {
+        return categoryS.findBy(id);
     }
 
     @ResponseStatus(HttpStatus.FOUND)
@@ -59,7 +57,7 @@ public class CategoryController {
      * @return Will return unique added list
      */
     @ResponseStatus(HttpStatus.OK)
-    @PostMapping("/saveAll")
+    @PostMapping("/save-all")
     public List<Category> saveAll(@RequestBody List<Category> list) {
         HashSet<String> set = new HashSet<>();
         list.removeIf(category -> !set.add(category.getName()));
