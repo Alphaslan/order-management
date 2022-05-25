@@ -3,6 +3,8 @@ package com.jrp.oma.controllers;
 import com.jrp.oma.entities.Address;
 import com.jrp.oma.services.AddressService;
 import com.jrp.oma.services.CustomerService;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -29,8 +31,16 @@ public class AddressController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
-    public List<Address> findAll() {
+    public Iterable<Address> findAll() {
         return addressS.findAll();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/pageable")
+    public Iterable<Address> findAllPaginated(@RequestParam(value = "page", defaultValue = "0") int page,
+                                     @RequestParam(value = "size", defaultValue = "50") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return addressS.findAll(pageable);
     }
 
     @ResponseStatus(HttpStatus.FOUND)

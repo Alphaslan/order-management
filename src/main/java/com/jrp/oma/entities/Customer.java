@@ -12,7 +12,8 @@ import java.util.List;
 @Entity
 public class Customer {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "customer_generator")
+    @SequenceGenerator(name = "customer_generator", sequenceName = "customer_seq",allocationSize = 1)
     private Long id;
 
     @NotBlank(message = "*Must give a first name")
@@ -27,6 +28,7 @@ public class Customer {
     @Email
     private String email;
 
+    @OrderBy("count(id)")
     @JsonBackReference(value = "customer_order")
     @OneToMany(cascade =
             {CascadeType.DETACH, CascadeType.MERGE,

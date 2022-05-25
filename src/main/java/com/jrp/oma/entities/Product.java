@@ -12,26 +12,29 @@ import java.util.List;
 public class Product {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "product_generator")
+    @SequenceGenerator(name = "product_generator", sequenceName = "product_seq",allocationSize = 1)
     private Long id;
 
     @NotNull
+    @Column(unique = true)
     private String name;
 
     @NotNull
     private BigDecimal price;
 
+    @NotNull
     @JsonBackReference(value = "product_category")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne//lazy
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @JsonBackReference(value = "product_order")
+    @JsonBackReference(value = "order_product")
     @ManyToMany(cascade =
             {CascadeType.DETACH, CascadeType.MERGE,
                     CascadeType.REFRESH, CascadeType.PERSIST},
             fetch = FetchType.LAZY)
-    @JoinTable(name = "product_order",
+    @JoinTable(name = "order_product",
             joinColumns = @JoinColumn(name = "product_id"),
             inverseJoinColumns = @JoinColumn(name = "order_id"))
     private List<Order> orderList;

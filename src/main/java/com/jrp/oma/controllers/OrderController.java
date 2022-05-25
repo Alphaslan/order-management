@@ -5,6 +5,8 @@ import com.jrp.oma.entities.Product;
 import com.jrp.oma.services.AddressService;
 import com.jrp.oma.services.CustomerService;
 import com.jrp.oma.services.OrderService;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,12 +35,19 @@ public class OrderController {
 
     //unique
     //sort
-    //pageable
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/find-all")
-    public List<Order> findAll() {
+    @GetMapping
+    public Iterable<Order> findAll() {
         return orderS.findAll();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/pageable")
+    public Iterable<Order> findAllPaginated(@RequestParam(value = "page", defaultValue = "0") int page,
+                                   @RequestParam(value = "size", defaultValue = "50") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return orderS.findAll(pageable);
     }
 
     @ResponseStatus(HttpStatus.FOUND)
@@ -95,6 +104,7 @@ public class OrderController {
 
     /**
      * Addition can be multiple of same item. But deleting is for only
+     *
      * @param id
      * @param operation
      * @param productList

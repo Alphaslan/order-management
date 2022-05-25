@@ -2,6 +2,9 @@ package com.jrp.oma.controllers;
 
 import com.jrp.oma.entities.Customer;
 import com.jrp.oma.services.CustomerService;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,8 +29,34 @@ public class CustomerController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
-    public List<Customer> findAll() {
+    public Iterable<Customer> findAll() {
         return customerS.findAll();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/pageable")
+    public Iterable<Customer> findAllPaginated(@RequestParam(value = "page", defaultValue = "0") int page,
+                                      @RequestParam(value = "size", defaultValue = "50") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return customerS.findAll(pageable);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/lname-sorted")
+    public Iterable<Customer> findAllSortedLnameAndPaginated(@RequestParam(value = "page", defaultValue = "0") int page,
+                                               @RequestParam(value = "size", defaultValue = "50") int size) {
+        Sort lnameSort = Sort.by("lname");
+        Pageable pageable = PageRequest.of(page, size).withSort(lnameSort);
+        return customerS.findAll(pageable);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/order-sorted")
+    public Iterable<Customer> findAllSortedOrderNumAndPaginated(@RequestParam(value = "page", defaultValue = "0") int page,
+                                                             @RequestParam(value = "size", defaultValue = "50") int size) {
+        Sort orderSort = Sort.by("orderList").descending().and(Sort.by("lname"));
+        Pageable pageable = PageRequest.of(page, size).withSort(orderSort);
+        return customerS.findAll(pageable);
     }
 
     @ResponseStatus(HttpStatus.FOUND)
@@ -38,7 +67,7 @@ public class CustomerController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/email/{email}")
-    public List<Customer> findByEmailContains(@PathVariable String email){
+    public List<Customer> findByEmailContains(@PathVariable String email) {
         return customerS.findByEmailContains(email);
     }
 
@@ -58,7 +87,7 @@ public class CustomerController {
     @PostMapping("/save")
     public Customer saveAndFlush(@RequestBody Customer customer) {
         String fname = customer.getFname();
-        customer.setFname(fname.substring(0,1).toUpperCase()+fname.substring(1).toLowerCase());
+        customer.setFname(fname.substring(0, 1).toUpperCase() + fname.substring(1).toLowerCase());
 
         customer.setLname(customer.getLname().toUpperCase());
         return customerS.saveAndFlush(customer);
@@ -68,8 +97,8 @@ public class CustomerController {
     @PostMapping("/save-all")
     public List<Customer> saveAll(@RequestBody List<Customer> list) {
         List<Customer> addedList = new ArrayList<>();
-        for (Customer customer: list){
-            if(saveAndFlush(customer) != null)
+        for (Customer customer : list) {
+            if (saveAndFlush(customer) != null)
                 addedList.add(customer);
         }
         return addedList;

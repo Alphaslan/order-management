@@ -4,6 +4,9 @@ import com.jrp.oma.entities.Category;
 import com.jrp.oma.entities.Product;
 import com.jrp.oma.services.CategoryService;
 import com.jrp.oma.services.ProductService;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,11 +30,45 @@ public class ProductController {
     //sort
     //pageable
 
-
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
-    public List<Product> findAll() {
+    public Iterable<Product> findAll() {
         return productS.findAll();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/pageable")
+    public Iterable<Product> findAllPaginated(@RequestParam(value = "page", defaultValue = "0") int page,
+                                     @RequestParam(value = "size", defaultValue = "50") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return productS.findAll(pageable);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/name-sorted")
+    public Iterable<Product> findAllSortedNamePaginated(@RequestParam(value = "page", defaultValue = "0") int page,
+                                              @RequestParam(value = "size", defaultValue = "50") int size) {
+        Sort nameSorted = Sort.by("name");
+        Pageable pageable = PageRequest.of(page, size).withSort(nameSorted);
+        return productS.findAll(pageable);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/price-sorted")
+    public Iterable<Product> findAllSortedPricePaginated(@RequestParam(value = "page", defaultValue = "0") int page,
+                                                        @RequestParam(value = "size", defaultValue = "50") int size) {
+        Sort priceSorted = Sort.by("price");
+        Pageable pageable = PageRequest.of(page, size).withSort(priceSorted);
+        return productS.findAll(pageable);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/category-sorted")
+    public Iterable<Product> findAllSortedCategoryPaginated(@RequestParam(value = "page", defaultValue = "0") int page,
+                                                         @RequestParam(value = "size", defaultValue = "50") int size) {
+        Sort categorySorted = Sort.by("category");
+        Pageable pageable = PageRequest.of(page, size).withSort(categorySorted);
+        return productS.findAll(pageable);
     }
 
     @ResponseStatus(HttpStatus.FOUND)
@@ -62,7 +99,7 @@ public class ProductController {
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(value = "/price", params = {"min", "max"})
     public List<Product> findByPriceRange(@RequestParam BigDecimal min, @RequestParam BigDecimal max) {
-        return productS.findByPriceBetween(min,max);
+        return productS.findByPriceBetween(min, max);
     }
 
     @ResponseStatus(HttpStatus.OK)
@@ -122,7 +159,7 @@ public class ProductController {
 
         List<Product> addedList = new ArrayList<>();
         for (Product product : productList) {
-            if(saveAndFlush(product).getBody() !=null)
+            if (saveAndFlush(product).getBody() != null)
                 addedList.add(product);
         }
         return addedList;
@@ -131,7 +168,8 @@ public class ProductController {
     @PatchMapping(path = "/{id}")
     public ResponseEntity<Product> partialUpdate(@PathVariable Long id, @RequestBody Product patchProduct) {
         if (!productS.findBy(id).isPresent())
-            return ResponseEntity.badRequest().build();;
+            return ResponseEntity.badRequest().build();
+        ;
         Product oldProduct = productS.findBy(id).get();
 
         if (patchProduct.getName() != null)
@@ -140,7 +178,7 @@ public class ProductController {
         if (patchProduct.getPrice() != null)
             oldProduct.setPrice(patchProduct.getPrice());
 
-        if (patchProduct.getCategory() != null){
+        if (patchProduct.getCategory() != null) {
             if (!oldProduct.getCategory().getName().equals(patchProduct.getCategory().getName())) {
                 if (categoryS.findBy(patchProduct.getCategory().getName()).isPresent()) {
                     oldProduct.setCategory(categoryS.findBy(patchProduct.getCategory().getName()).get());

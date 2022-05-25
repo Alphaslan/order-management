@@ -4,7 +4,10 @@ import com.jrp.oma.dao.OrderRepository;
 import com.jrp.oma.entities.Order;
 import com.jrp.oma.entities.Product;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -41,6 +44,14 @@ public class OrderService {
 
     public List<Order> findAll() {
         return orderR.findAll();
+    }
+
+    public Iterable<Order> findAll(Pageable pageable) {
+        return orderR.findAll(pageable);
+    }
+
+    public Iterable<Order> findAll(Sort sort) {
+        return orderR.findAll(sort);
     }
 
     public List<Order> findByCreationDateBefore(LocalDateTime dateTime) {

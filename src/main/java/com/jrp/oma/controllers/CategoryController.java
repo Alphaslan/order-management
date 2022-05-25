@@ -2,6 +2,9 @@ package com.jrp.oma.controllers;
 
 import com.jrp.oma.entities.Category;
 import com.jrp.oma.services.CategoryService;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -26,8 +29,25 @@ public class CategoryController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
-    public List<Category> findAll() {
+    public Iterable<Category> findAll() {
         return categoryS.findAll();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/pageable")
+    public Iterable<Category> findAllPaginated(@RequestParam(value = "page", defaultValue = "0") int page,
+                                      @RequestParam(value = "size", defaultValue = "50") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return categoryS.findAll(pageable);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/name-sorted")
+    public Iterable<Category> findAllSortedNamePaginated(@RequestParam(value = "page", defaultValue = "0") int page,
+                                               @RequestParam(value = "size", defaultValue = "50") int size) {
+        Sort nameSort = Sort.by("name");
+        Pageable pageable = PageRequest.of(page, size).withSort(nameSort);
+        return categoryS.findAll(pageable);
     }
 
     @ResponseStatus(HttpStatus.FOUND)
@@ -45,7 +65,7 @@ public class CategoryController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/save")
     public Category saveAndFlush(@RequestBody Category category) {
-        String temp=category.getName().toLowerCase();
+        String temp = category.getName().toLowerCase();
         category.setName(StringUtils.capitalize(temp));
         return categoryS.saveAndFlush(category);
     }

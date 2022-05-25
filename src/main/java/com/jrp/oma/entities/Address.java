@@ -16,10 +16,12 @@ public class Address {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "address_generator")
+    @SequenceGenerator(name = "address_generator",sequenceName = "address_seq",allocationSize = 1)
     private Long id;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     private States state;
 
     private String city;

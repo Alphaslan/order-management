@@ -10,11 +10,12 @@ import java.util.List;
 public class Category {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "category_generator")
+    @SequenceGenerator(name = "category_generator", sequenceName = "category_seq",allocationSize = 1)
     private Long id;
 
     @NotNull
-    //  @Column(unique = true)
+    @Column(unique = true)
     private String name;
 
     @JsonManagedReference(value = "product_category")

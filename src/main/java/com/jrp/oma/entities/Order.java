@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,9 +19,11 @@ public class Order {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "order_generator")
+    @SequenceGenerator(name = "order_generator",sequenceName = "order_seq", allocationSize = 1)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
     private Status status;
 
     private LocalDateTime creationDate;
@@ -30,23 +33,24 @@ public class Order {
     private BigDecimal tax;
 
     @JsonIgnore
-    @JsonBackReference(value = "product_order")
+    @JsonBackReference(value = "order_product")
     @ManyToMany(cascade =
             {CascadeType.DETACH, CascadeType.MERGE,
-                    CascadeType.REFRESH, CascadeType.PERSIST},
-            fetch = FetchType.LAZY)
-    @JoinTable(name = "product_order",
+                    CascadeType.REFRESH, CascadeType.PERSIST}
+            //, fetch = FetchType.LAZY
+    )
+    @JoinTable(name = "order_product",
     joinColumns = @JoinColumn(name = "order_id"),
     inverseJoinColumns = @JoinColumn(name = "product_id"))
     private List<Product> productList;
 
-
+    @NotNull
     @JsonBackReference(value = "customer_order")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
-//    @NotNull
+    @NotNull
     @JsonBackReference(value = "address_order")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_id")
