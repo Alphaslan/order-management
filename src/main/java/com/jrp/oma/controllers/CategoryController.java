@@ -24,9 +24,6 @@ public class CategoryController {
         this.categoryS = categoryS;
     }
 
-    //sort
-    //pageable
-
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
     public Iterable<Category> findAll() {

@@ -26,10 +26,6 @@ public class ProductController {
         this.categoryS = categoryS;
     }
 
-    //unique
-    //sort
-    //pageable
-
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
     public Iterable<Product> findAll() {

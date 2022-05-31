@@ -33,9 +33,6 @@ public class OrderController {
         this.addressS = addressS;
     }
 
-    //unique
-    //sort
-
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
     public Iterable<Order> findAll() {

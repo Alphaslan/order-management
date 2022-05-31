@@ -23,10 +23,6 @@ public class CustomerController {
         this.customerS = customerS;
     }
 
-    //unique
-    //sort
-    //pageable
-
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
     public Iterable<Customer> findAll() {

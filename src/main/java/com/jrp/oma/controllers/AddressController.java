@@ -25,10 +25,6 @@ public class AddressController {
         this.customerS = customerS;
     }
 
-    //unique
-    //sort
-    //pageable
-
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
     public Iterable<Address> findAll() {

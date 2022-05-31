@@ -18,7 +18,6 @@ import javax.annotation.PostConstruct;
 
 @EnableTransactionManagement
 @Configuration
-@Service
 @Profile("dev")
 public class DevInitConfig {
 
